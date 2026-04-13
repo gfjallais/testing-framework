@@ -1,4 +1,4 @@
-from framework import TestCase, TestResult
+from framework import TestCase, TestResult, TestSuite
 
 
 class TestStub(TestCase):
@@ -85,6 +85,38 @@ class TestCaseTest(TestCase):
         assert spy.log == "set_up test_method tear_down"
 
 
+class TestSuiteTest(TestCase):
+
+    def test_suite_size(self):
+        suite = TestSuite()
+
+        suite.add_test(TestStub('test_success'))
+        suite.add_test(TestStub('test_failure'))
+        suite.add_test(TestStub('test_error'))
+
+        assert len(suite.tests) == 3
+
+    def test_suite_success_run(self):
+        result = TestResult()
+        suite = TestSuite()
+        suite.add_test(TestStub('test_success'))
+
+        suite.run(result)
+
+        assert result.summary() == '1 run, 0 failed, 0 error'
+
+    def test_suite_multiple_run(self):
+        result = TestResult()
+        suite = TestSuite()
+        suite.add_test(TestStub('test_success'))
+        suite.add_test(TestStub('test_failure'))
+        suite.add_test(TestStub('test_error'))
+
+        suite.run(result)
+
+        assert result.summary() == '3 run, 1 failed, 1 error'
+
+
 def _run_all_test_case_tests():
     result = TestResult()
     method_names = (
@@ -102,6 +134,33 @@ def _run_all_test_case_tests():
     return result
 
 
+def _run_full_framework_suite():
+    result = TestResult()
+    suite = TestSuite()
+
+    for name in (
+        'test_result_success_run',
+        'test_result_failure_run',
+        'test_result_error_run',
+        'test_result_multiple_run',
+        'test_was_set_up',
+        'test_was_run',
+        'test_was_tear_down',
+        'test_template_method',
+    ):
+        suite.add_test(TestCaseTest(name))
+
+    for name in (
+        'test_suite_size',
+        'test_suite_success_run',
+        'test_suite_multiple_run',
+    ):
+        suite.add_test(TestSuiteTest(name))
+
+    suite.run(result)
+    return result
+
+
 if __name__ == '__main__':
-    final = _run_all_test_case_tests()
+    final = _run_full_framework_suite()
     print(final.summary())
